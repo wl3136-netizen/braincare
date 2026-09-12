@@ -11,61 +11,44 @@
 <body>
   <main class="app-shell">
     <header class="topbar">
-      <div>
-        <p class="eyebrow">어르신 인지활동 놀이</p>
-        <h1>두뇌산책</h1>
-      </div>
+      <div><p class="eyebrow">어르신 인지활동 놀이</p><h1>두뇌산책</h1></div>
       <button id="soundToggle" class="icon-btn" type="button" aria-pressed="true">🔊 소리 켜짐</button>
     </header>
 
-    <section id="homeView" class="view active" aria-labelledby="homeTitle">
-      <h2 id="homeTitle">오늘도 즐겁게 시작해볼까요?</h2>
+    <section id="homeView" class="view active">
+      <h2>오늘도 즐겁게 시작해볼까요?</h2>
       <div class="main-grid">
-        <button class="menu-card primary" data-action="daily" type="button">
-          <span class="emoji">🚶</span><strong>오늘의 두뇌산책</strong><small>오늘의 놀이를 순서대로 해요</small>
-        </button>
-        <button class="menu-card" data-action="free" type="button">
-          <span class="emoji">🎮</span><strong>자유놀이</strong><small>하고 싶은 놀이를 골라요</small>
-        </button>
-        <button class="menu-card" data-action="memoryTrip" type="button">
-          <span class="emoji">📻</span><strong>추억여행</strong><small>익숙한 물건과 이야기를 만나요</small>
-        </button>
-        <button class="menu-card" data-action="records" type="button">
-          <span class="emoji">📊</span><strong>내 기록</strong><small>오늘 얼마나 활동했는지 봐요</small>
-        </button>
+        <button class="menu-card primary" data-action="daily"><span class="emoji">🚶</span><strong>오늘의 두뇌산책</strong><small>오늘의 놀이를 순서대로 해요</small></button>
+        <button class="menu-card" data-action="free"><span class="emoji">🎮</span><strong>자유놀이</strong><small>하고 싶은 놀이를 골라요</small></button>
+        <button class="menu-card" data-action="memoryTrip"><span class="emoji">📻</span><strong>추억여행</strong><small>익숙한 물건과 이야기를 만나요</small></button>
+        <button class="menu-card" data-action="records"><span class="emoji">📊</span><strong>내 기록</strong><small>오늘 얼마나 활동했는지 봐요</small></button>
       </div>
     </section>
 
-    <section id="gamesView" class="view" aria-labelledby="gamesTitle">
-      <div class="section-head">
-        <button class="back-btn" type="button" data-back>← 처음으로</button>
-        <h2 id="gamesTitle">자유놀이</h2>
-      </div>
-      <div class="game-grid" id="gameGrid"></div>
+    <section id="gamesView" class="view">
+      <div class="section-head"><button class="back-btn" data-back-home>← 처음으로</button><h2>자유놀이</h2></div>
+      <div id="gameGrid" class="game-grid"></div>
     </section>
 
-    <section id="memoryGameView" class="view" aria-labelledby="memoryGameTitle">
-      <div class="section-head">
-        <button class="back-btn" type="button" data-back>← 놀이 선택</button>
-        <h2 id="memoryGameTitle">그림 기억하기</h2>
-      </div>
+    <section id="playView" class="view">
+      <div class="section-head"><button class="back-btn" data-back-games>← 놀이 선택</button><h2 id="playTitle">놀이</h2></div>
       <div class="game-panel">
-        <p id="gameInstruction" class="instruction">그림을 잘 기억해 주세요.</p>
-        <div id="memoryStage" class="memory-stage" aria-live="polite"></div>
-        <div class="game-actions"><button id="startMemoryBtn" class="big-btn" type="button">시작하기</button></div>
+        <div class="difficulty-row" id="difficultyRow">
+          <span>난이도</span>
+          <button data-level="easy" class="level-btn active">쉬움</button>
+          <button data-level="normal" class="level-btn">보통</button>
+          <button data-level="hard" class="level-btn">어려움</button>
+        </div>
+        <p id="gameInstruction" class="instruction"></p>
+        <div id="gameStage" class="game-stage" aria-live="polite"></div>
+        <div class="game-actions"><button id="mainGameBtn" class="big-btn">시작하기</button></div>
         <p id="gameStatus" class="status" aria-live="polite"></p>
       </div>
     </section>
 
     <section id="placeholderView" class="view">
-      <div class="section-head">
-        <button class="back-btn" type="button" data-back>← 처음으로</button>
-        <h2 id="placeholderTitle">준비 중</h2>
-      </div>
-      <div class="game-panel">
-        <div class="placeholder-emoji" id="placeholderEmoji">🌱</div>
-        <p id="placeholderText">MVP에서 순서대로 추가할 기능입니다.</p>
-      </div>
+      <div class="section-head"><button class="back-btn" data-back-home>← 처음으로</button><h2 id="placeholderTitle">준비 중</h2></div>
+      <div class="game-panel"><div id="placeholderEmoji" class="placeholder-emoji">🌱</div><p id="placeholderText">준비 중입니다.</p></div>
     </section>
   </main>
   <script src="./app.js"></script>
