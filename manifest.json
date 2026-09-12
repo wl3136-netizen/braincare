@@ -1,0 +1,9 @@
+{
+  "name": "두뇌산책",
+  "short_name": "두뇌산책",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7f7f2",
+  "theme_color": "#f7f7f2",
+  "lang": "ko-KR"
+}
