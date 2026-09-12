@@ -1,123 +1,33 @@
-const views=[...document.querySelectorAll('.view')];
-const gameGrid=document.getElementById('gameGrid');
-const memoryStage=document.getElementById('memoryStage');
-const gameInstruction=document.getElementById('gameInstruction');
-const gameStatus=document.getElementById('gameStatus');
-const startMemoryBtn=document.getElementById('startMemoryBtn');
-const soundToggle=document.getElementById('soundToggle');
-let soundOn=true;
-let targets=[];
-let selected=[];
-
+const $=id=>document.getElementById(id);const views=[...document.querySelectorAll('.view')];
+let soundOn=localStorage.getItem('braincare-sound')!=='off',current='memory',level='easy',timer=null,state={};
+const gameGrid=$('gameGrid'),stage=$('gameStage'),instruction=$('gameInstruction'),status=$('gameStatus'),mainBtn=$('mainGameBtn');
 const games=[
-['🧠','그림 기억하기','그림을 기억하고 다시 찾아요',true],
-['📍','위치 기억하기','꽃이 있던 자리를 기억해요',false],
-['👀','다른 그림 찾기','다른 하나를 찾아요',false],
-['🛒','장보기','살 물건을 기억하고 골라요',false],
-['🗣️','속담 완성','익숙한 속담을 완성해요',false],
-['💰','시장 계산','생활 속 계산을 해요',false],
-['🔄','생활 순서 맞추기','일상 행동 순서를 맞춰요',false],
-['📻','추억의 물건','옛 물건을 떠올려요',false]
-];
-
-function show(id){
-  views.forEach(v=>v.classList.toggle('active',v.id===id));
-}
-
-function speak(text){
-  if(!soundOn||!('speechSynthesis' in window))return;
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='ko-KR';
-  u.rate=.9;
-  speechSynthesis.speak(u);
-}
-
-function resetMemory(){
-  targets=[];selected=[];memoryStage.textContent='';
-  gameInstruction.textContent='그림을 잘 기억해 주세요.';
-  gameStatus.textContent='';
-  startMemoryBtn.hidden=false;
-  startMemoryBtn.textContent='시작하기';
-}
-
-function startMemory(){
-  const pool=['🍎','🐶','🚗','🌼','🍌','🐱','🚌','🥛','🥕','⚽'];
-  targets=[...pool].sort(()=>Math.random()-.5).slice(0,3);
-  memoryStage.textContent='';
-  targets.forEach(x=>{
-    const d=document.createElement('div');
-    d.className='memory-item';d.textContent=x;memoryStage.appendChild(d);
-  });
-  gameInstruction.textContent='그림 3개를 기억해 주세요.';
-  startMemoryBtn.hidden=true;
-  speak('그림 세 개를 잘 기억해 주세요.');
-  setTimeout(()=>showChoices(pool),4500);
-}
-
-function showChoices(pool){
-  const extra=pool.filter(x=>!targets.includes(x)).sort(()=>Math.random()-.5).slice(0,3);
-  const choices=[...targets,...extra].sort(()=>Math.random()-.5);
-  memoryStage.textContent='';selected=[];
-  gameInstruction.textContent='아까 보았던 그림 3개를 골라주세요.';
-  speak('아까 보았던 그림 세 개를 골라 주세요.');
-  choices.forEach(x=>{
-    const b=document.createElement('button');
-    b.type='button';b.className='memory-item';b.textContent=x;
-    b.addEventListener('click',()=>{
-      if(selected.includes(x))return;
-      selected.push(x);b.classList.add('selected');
-      if(selected.length===3){
-        const ok=targets.every(t=>selected.includes(t));
-        gameStatus.textContent=ok?'👏 잘하셨어요! 모두 맞혔어요.':'괜찮아요. 한 번 더 해볼까요?';
-        speak(ok?'잘하셨어요. 모두 맞혔어요.':'괜찮아요. 한 번 더 해볼까요?');
-        startMemoryBtn.hidden=false;startMemoryBtn.textContent='다시 하기';
-      }
-    });
-    memoryStage.appendChild(b);
-  });
-}
-
-function renderGames(){
-  games.forEach(g=>{
-    const b=document.createElement('button');
-    b.type='button';b.className='game-card';
-    const e=document.createElement('span');e.className='emoji';e.textContent=g[0];
-    const s=document.createElement('strong');s.textContent=g[1];
-    const m=document.createElement('small');m.textContent=g[2];
-    b.append(e,s,m);
-    b.addEventListener('click',()=>{
-      if(g[3]){resetMemory();show('memoryGameView');speak('그림 기억하기 놀이입니다.');}
-      else{
-        document.getElementById('placeholderTitle').textContent=g[1];
-        document.getElementById('placeholderEmoji').textContent=g[0];
-        document.getElementById('placeholderText').textContent=g[1]+'은 다음 구현 단계에서 추가됩니다.';
-        show('placeholderView');
-      }
-    });
-    gameGrid.appendChild(b);
-  });
-}
-
-soundToggle.addEventListener('click',()=>{
-  soundOn=!soundOn;
-  soundToggle.textContent=soundOn?'🔊 소리 켜짐':'🔇 소리 꺼짐';
-});
-
-document.querySelectorAll('[data-back]').forEach(b=>b.addEventListener('click',()=>{
-  resetMemory();show(b.closest('#memoryGameView')?'gamesView':'homeView');
-}));
-
-document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('click',()=>{
-  const a=b.dataset.action;
-  if(a==='free')show('gamesView');
-  else if(a==='daily'){resetMemory();show('memoryGameView');}
-  else{
-    document.getElementById('placeholderTitle').textContent=a==='memoryTrip'?'추억여행':'내 기록';
-    document.getElementById('placeholderEmoji').textContent=a==='memoryTrip'?'📻':'📊';
-    show('placeholderView');
-  }
-}));
-
-startMemoryBtn.addEventListener('click',startMemory);
-renderGames();
+{id:'memory',icon:'🧠',name:'그림 기억하기',desc:'그림을 기억하고 다시 찾아요',ready:true},
+{id:'position',icon:'📍',name:'위치 기억하기',desc:'꽃이 있던 자리를 기억해요',ready:true},
+{id:'odd',icon:'👀',name:'다른 그림 찾기',desc:'다른 하나를 찾아요',ready:true},
+{id:'shopping',icon:'🛒',name:'장보기',desc:'살 물건을 기억하고 골라요',ready:true},
+{id:'proverb',icon:'🗣️',name:'속담 완성',desc:'익숙한 속담을 완성해요',ready:false},
+{id:'market',icon:'💰',name:'시장 계산',desc:'생활 속 계산을 해요',ready:false},
+{id:'order',icon:'🔄',name:'생활 순서 맞추기',desc:'일상 행동 순서를 맞춰요',ready:false},
+{id:'retro',icon:'📻',name:'추억의 물건',desc:'옛 물건을 떠올려요',ready:false}];
+const pools={memory:['🍎','🐶','🚗','🌼','🍌','🐱','🚌','🥛','🥕','⚽','🍇','🐰'],shopping:['🍎','🥛','🥕','🍌','🍞','🥚','🧅','🥔','🍅','🧀','🍐','🥬']};
+function shuffle(a){return [...a].sort(()=>Math.random()-.5)}function show(id){views.forEach(v=>v.classList.toggle('active',v.id===id));scrollTo(0,0)}
+function speak(t){if(!soundOn||!speechSynthesis)return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='ko-KR';u.rate=.88;speechSynthesis.speak(u)}
+function setSound(){const b=$('soundToggle');b.textContent=soundOn?'🔊 소리 켜짐':'🔇 소리 꺼짐';b.setAttribute('aria-pressed',soundOn)}
+function logResult(game,correct,extra={}){const list=JSON.parse(localStorage.getItem('braincare-results')||'[]');list.push({date:new Date().toISOString(),game,difficulty:level,correct,...extra});localStorage.setItem('braincare-results',JSON.stringify(list.slice(-200)))}
+function finish(ok,msg){status.textContent=msg;speak(ok?'잘하셨어요!': '괜찮아요. 다시 한번 해볼까요?');mainBtn.hidden=false;mainBtn.textContent='다시 하기';logResult(current,ok)}
+function card(x,click,cls='choice-item'){const b=document.createElement('button');b.className=cls;b.textContent=x;b.onclick=click;return b}
+function reset(){clearTimeout(timer);state={};stage.innerHTML='';status.textContent='';mainBtn.hidden=false;mainBtn.textContent='시작하기';const g=games.find(x=>x.id===current);instruction.textContent=g?g.desc:''}
+function openGame(id){current=id;reset();const g=games.find(x=>x.id===id);$('playTitle').textContent=g.name;show('playView');speak(g.name+' 놀이입니다.')}
+function renderGames(){gameGrid.innerHTML='';games.forEach(g=>{const b=document.createElement('button');b.className='game-card';b.innerHTML=`<span class="emoji">${g.icon}</span><strong>${g.name}</strong><small>${g.desc}${g.ready?'':' · 준비 중'}</small>`;b.onclick=()=>g.ready?openGame(g.id):placeholder(g);gameGrid.appendChild(b)})}
+function placeholder(g){$('placeholderTitle').textContent=g.name;$('placeholderEmoji').textContent=g.icon;$('placeholderText').textContent=g.name+'은 다음 업데이트에서 추가됩니다.';show('placeholderView')}
+function start(){reset();mainBtn.hidden=true;if(current==='memory')memoryStart();if(current==='position')positionStart();if(current==='odd')oddStart();if(current==='shopping')shoppingStart()}
+function memoryStart(){const n={easy:2,normal:3,hard:5}[level],choices={easy:4,normal:6,hard:9}[level];state.targets=shuffle(pools.memory).slice(0,n);instruction.textContent=`그림 ${n}개를 기억해 주세요.`;state.targets.forEach(x=>stage.appendChild(card(x,null,'display-item')));speak(instruction.textContent);timer=setTimeout(()=>{stage.innerHTML='';state.selected=[];instruction.textContent=`아까 보았던 그림 ${n}개를 모두 골라주세요.`;const extra=shuffle(pools.memory.filter(x=>!state.targets.includes(x))).slice(0,choices-n);shuffle([...state.targets,...extra]).forEach(x=>stage.appendChild(card(x,e=>{const b=e.currentTarget;if(b.classList.contains('selected')){b.classList.remove('selected');state.selected=state.selected.filter(v=>v!==x)}else if(state.selected.length<n){b.classList.add('selected');state.selected.push(x)}if(state.selected.length===n){const ok=state.targets.every(t=>state.selected.includes(t));finish(ok,ok?'👏 잘하셨어요! 모두 맞혔어요.':'조금 달랐어요. 다시 해볼까요?')}})));speak(instruction.textContent)},4200)}
+function positionStart(){const size=level==='hard'?4:3,n={easy:2,normal:3,hard:4}[level],total=size*size;state.targets=shuffle([...Array(total).keys()]).slice(0,n);stage.className='game-stage position-grid';stage.style.setProperty('--grid',size);instruction.textContent='꽃이 있는 자리를 기억해 주세요.';for(let i=0;i<total;i++){const d=document.createElement('div');d.className='position-cell';d.textContent=state.targets.includes(i)?'🌼':'';stage.appendChild(d)}speak(instruction.textContent);timer=setTimeout(()=>{stage.innerHTML='';state.selected=[];instruction.textContent='꽃이 있던 자리를 눌러주세요.';for(let i=0;i<total;i++){const b=card('',()=>{if(state.selected.includes(i))return;b.textContent='🌱';state.selected.push(i);if(state.selected.length===n){const ok=state.targets.every(t=>state.selected.includes(t));finish(ok,ok?'👏 위치를 모두 기억하셨어요!':'괜찮아요. 다시 한번 기억해볼까요?')}},'position-cell');stage.appendChild(b)}speak(instruction.textContent)},3500)}
+function oddStart(){stage.className='game-stage odd-grid';const count={easy:9,normal:12,hard:16}[level],sets=level==='hard'?[['🍎','🍅'],['🐶','🐕']]:[['🍎','🍅'],['🌼','🌻'],['🐱','🐯']],pair=sets[Math.floor(Math.random()*sets.length)],odd=Math.floor(Math.random()*count);instruction.textContent='다른 그림 하나를 찾아주세요.';for(let i=0;i<count;i++)stage.appendChild(card(i===odd?pair[1]:pair[0],()=>{const ok=i===odd;finish(ok,ok?'👏 맞아요! 다른 그림을 찾았어요.':'조금 더 살펴볼까요?')}));speak(instruction.textContent)}
+function shoppingStart(){const n={easy:2,normal:3,hard:4}[level],choices={easy:6,normal:8,hard:10}[level];state.targets=shuffle(pools.shopping).slice(0,n);instruction.textContent=`오늘 시장에서 살 물건 ${n}개를 기억해 주세요.`;state.targets.forEach(x=>stage.appendChild(card(x,null,'display-item')));speak(instruction.textContent);timer=setTimeout(()=>{stage.innerHTML='';state.selected=[];instruction.textContent='시장에 왔어요. 아까 살 물건을 모두 골라주세요.';const extra=shuffle(pools.shopping.filter(x=>!state.targets.includes(x))).slice(0,choices-n);shuffle([...state.targets,...extra]).forEach(x=>stage.appendChild(card(x,e=>{const b=e.currentTarget;if(b.classList.contains('selected')){b.classList.remove('selected');state.selected=state.selected.filter(v=>v!==x)}else if(state.selected.length<n){b.classList.add('selected');state.selected.push(x)}if(state.selected.length===n){const ok=state.targets.every(t=>state.selected.includes(t));finish(ok,ok?'🛒 장보기를 잘 마쳤어요!':'괜찮아요. 장보기 목록을 다시 기억해볼까요?')}})));speak(instruction.textContent)},4500)}
+$('soundToggle').onclick=()=>{soundOn=!soundOn;localStorage.setItem('braincare-sound',soundOn?'on':'off');setSound()};
+document.querySelectorAll('[data-level]').forEach(b=>b.onclick=()=>{level=b.dataset.level;document.querySelectorAll('[data-level]').forEach(x=>x.classList.toggle('active',x===b));reset()});
+document.querySelectorAll('[data-back-home]').forEach(b=>b.onclick=()=>show('homeView'));document.querySelectorAll('[data-back-games]').forEach(b=>b.onclick=()=>{reset();show('gamesView')});
+document.querySelectorAll('[data-action]').forEach(b=>b.onclick=()=>{const a=b.dataset.action;if(a==='free')show('gamesView');else if(a==='daily')openGame('memory');else placeholder({name:a==='memoryTrip'?'추억여행':'내 기록',icon:a==='memoryTrip'?'📻':'📊'})});
+mainBtn.onclick=start;setSound();renderGames();
